@@ -1,0 +1,16 @@
+body {
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+.main {
+  font-size: 1.1rem;
+  font-weight: 200;
+
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+input,
+select {
+  height: 70%;
+  margin-left: 10px;
+}
