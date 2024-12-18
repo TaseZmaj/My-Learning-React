@@ -38,6 +38,11 @@ function Tabbed({ content }) {
         <Tab num={3} activeTab={activeTab} onClick={setActiveTab} />
       </div>
 
+      {/* AKO se smenat propsot na komponentot, togas ne se kreira nov komponent,
+      state-ot ke mu ostane ist (common sense) - Vo programata nalikuva ko da se 
+      kreira nov element, no samo se menuva sodrzinata na eden element, ne se kreira nov.
+      Pazi sea: Ako active tab go stavime da e ednakov na 3, ke se pokaze different 
+      Content i togas ke se resetiraat site states na TabContent elementot - na pr. like-ovite */}
       {activeTab <= 2 ? (
         <TabContent item={content[activeTab]} />
       ) : (
