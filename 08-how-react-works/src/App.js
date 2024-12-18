@@ -42,7 +42,8 @@ function Tabbed({ content }) {
       state-ot ke mu ostane ist (common sense) - Vo programata nalikuva ko da se 
       pokazuva nov element, no samo se menuva sodrzinata na eden element, ne se pokazuva drug.
       Pazi sea: Ako active tab go stavime da e ednakov na 3, ke se pokaze <DifferentContent/> 
-      i togas ke se resetiraat site states na TabContent elementot - na pr. like-ovite */}
+      i togas ke se resetiraat site states na TabContent elementot bidejki elementot se "brishe"
+      vo toj moment bidejki e conditionally rendered - na pr. like-ovite */}
       {activeTab <= 2 ? (
         <TabContent item={content[activeTab]} />
       ) : (
