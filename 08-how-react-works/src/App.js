@@ -45,7 +45,10 @@ function Tabbed({ content }) {
       i togas ke se resetiraat site states na TabContent elementot bidejki elementot se "brishe"
       vo toj moment bidejki e conditionally rendered - na pr. like-ovite */}
       {activeTab <= 2 ? (
-        <TabContent item={content[activeTab]} />
+        <TabContent
+          item={content[activeTab]}
+          key={content[activeTab].summary}
+        />
       ) : (
         <DifferentContent />
       )}
@@ -71,6 +74,10 @@ function TabContent({ item }) {
   function handleInc() {
     setLikes(likes + 1);
   }
+  function handleUndo() {
+    setShowDetails(true);
+    setLikes(0);
+  }
 
   return (
     <div className="tab-content">
@@ -90,7 +97,7 @@ function TabContent({ item }) {
       </div>
 
       <div className="tab-undo">
-        <button>Undo</button>
+        <button onClick={handleUndo}>Undo</button>
         <button>Undo in 2s</button>
       </div>
     </div>

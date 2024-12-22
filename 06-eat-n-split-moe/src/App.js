@@ -84,7 +84,13 @@ export default function App() {
         <FormSplitBill
           onSplitBill={handleSplitBill}
           selectedFriend={selectedFriend}
+          key={selectedFriend.id}
         />
+        // key propot e namenet za React da poznae deka stanuva zbor
+        //za razlicen <FormSplitBill/> pri selekcija na drug friend
+        //Bez key propot, pri selekcija na nov friend, React gi cuvashe
+        //vrednostite vo input polinjata vo <FormSplitBill/>, toa ne go
+        //sakas
       )}
     </div>
   );
