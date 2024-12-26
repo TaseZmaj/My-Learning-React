@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const tempMovieData = [
   {
@@ -66,7 +66,7 @@ function Logo() {
 function NumResults({ movies }) {
   return (
     <p className="num-results">
-      Found <strong>{movies.length}</strong> results
+      Found <strong>{movies?.length}</strong> results
     </p>
   );
 }
@@ -206,9 +206,25 @@ function Main({ children }) {
 const average = (arr) =>
   arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
 
+const KEY = "9e721866";
+
 export default function App() {
-  const [movies, setMovies] = useState(tempMovieData);
-  const [watched, setWatched] = useState(tempWatchedData);
+  const [movies, setMovies] = useState([]);
+  const [watched, setWatched] = useState([]);
+  const query = "interstellar";
+
+  useEffect(() => {
+    async function fetchMovies() {
+      const res = await fetch(
+        `http://www.omdbapi.com/?apikey=${KEY}&s=interstellar`
+      );
+      const data = await res.json();
+      setMovies(data.Search);
+      console.log(movies); //OVA NEMA DA RABOTI -> [] ova ke ti dava
+      //bidejki state changes se asyhnchronous
+    }
+    fetchMovies();
+  }, []);
 
   return (
     <>
