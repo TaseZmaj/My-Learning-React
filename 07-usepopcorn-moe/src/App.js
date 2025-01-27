@@ -70,8 +70,7 @@ function NumResults({ movies }) {
     </p>
   );
 }
-function Search() {
-  const [query, setQuery] = useState("");
+function Search({ query, setQuery }) {
   return (
     <input
       className="search"
@@ -202,6 +201,17 @@ function WatchedMovie({ movie }) {
 function Main({ children }) {
   return <main className="main">{children}</main>;
 }
+function Loader() {
+  return <p className="loader">Loading...</p>;
+}
+function ErrorMessage({ message }) {
+  return (
+    <p className="error">
+      <span>⛔</span>
+      {message}
+    </p>
+  );
+}
 
 const average = (arr) =>
   arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
@@ -211,25 +221,65 @@ const KEY = "9e721866";
 export default function App() {
   const [movies, setMovies] = useState([]);
   const [watched, setWatched] = useState([]);
-  const query = "interstellar";
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [query, setQuery] = useState("");
+
+  // useEffect(function () {
+  //   console.log("A");
+  // }, []);
+
+  // useEffect(function () {
+  //   console.log("B");
+  // });
+
+  // console.log("C");
 
   useEffect(() => {
     async function fetchMovies() {
-      const res = await fetch(
-        `http://www.omdbapi.com/?apikey=${KEY}&s=interstellar`
-      );
-      const data = await res.json();
-      setMovies(data.Search);
-      console.log(movies); //OVA NEMA DA RABOTI -> [] ova ke ti dava
-      //bidejki state changes se asyhnchronous
+      try {
+        setIsLoading(true);
+        setError(""); //resetiranje na error bidejki ke fetch-ash sekoj pat koga ke se smeni query
+
+        const res = await fetch(
+          `http://www.omdbapi.com/?apikey=${KEY}&s=${query}`
+        );
+
+        //Ako korisnikot mu snema network
+        if (!res.ok) {
+          throw new Error("Something went wrong with fetching movies!");
+        }
+
+        const data = await res.json();
+
+        //Ako responceot e greshen, primer ako vneses losh query
+        if (data.Response === "False") {
+          throw new Error("Movie not found!");
+        }
+
+        setMovies(data.Search);
+      } catch (err) {
+        console.error(err.message);
+        setError(err.message);
+      } finally {
+        setIsLoading(false); //za da ne se pokazuvaat "Loading..." i errorot istovremeno
+      }
     }
+
+    //Ako e pomalo od 3 bukvi, nemoj ni da barash
+    if (query.length < 3) {
+      setMovies([]);
+      setError("");
+      return;
+    }
+
     fetchMovies();
-  }, []);
+  }, [query]);
 
   return (
     <>
       <Navbar>
-        <Search />
+        <Search query={query} setQuery={setQuery} />
         <NumResults movies={movies} />
       </Navbar>
       <Main>
@@ -243,8 +293,12 @@ export default function App() {
             </>
           }
         ></Box> */}
+
+        {/* <Box>{isLoading ? <Loader /> : <MovieList movies={movies} />}</Box> */}
         <Box>
-          <MovieList movies={movies} />
+          {isLoading && <Loader />}
+          {!isLoading && !error && <MovieList movies={movies} />}
+          {error && <ErrorMessage message={error} />}
         </Box>
         <Box>
           <>
