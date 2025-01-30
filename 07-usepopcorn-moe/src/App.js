@@ -269,10 +269,18 @@ function MovieDetails({ selectedId, onCloseMovie, onAddWatched, watched }) {
       );
       const data = await res.json();
       setMovie(data);
+      console.log(data);
+
       setIsLoading(false);
     }
     getMovieDetails();
   }, [selectedId]);
+
+  useEffect(() => {
+    if (!title) return; //Za da ne e na pola sekunda "undefined" vo title-ot
+
+    document.title = `MOVIE: ${title}`;
+  }, [title]);
 
   return (
     <div className="details">
