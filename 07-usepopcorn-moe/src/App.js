@@ -260,6 +260,25 @@ function MovieDetails({ selectedId, onCloseMovie, onAddWatched, watched }) {
     onCloseMovie();
   }
 
+  useEffect(() => {
+    function callback(e) {
+      if (e.code === "Escape") {
+        //ako keypressot na tastaturata e ESC
+        onCloseMovie();
+        // console.log("CLOSING");
+      }
+    }
+
+    //mora addEventListener i removeEventListener da primaat ista funkcija - "callback(e)",
+    //ako ja copy-pastenesh 2 pati, nema da ja poznava Javascript kako ista funkcija
+    document.addEventListener("keydown", callback);
+
+    return function () {
+      //za da ne apply-nuva nov event listener skoj pat koga e mount-nat komponentot
+      document.removeEventListener("keydown", callback);
+    };
+  }, [onCloseMovie]);
+
   //i tuka mozes da handlenuvash errori isto kako prethodno, samo vo vezbata ne e handlenato
   useEffect(() => {
     async function getMovieDetails() {
@@ -269,7 +288,7 @@ function MovieDetails({ selectedId, onCloseMovie, onAddWatched, watched }) {
       );
       const data = await res.json();
       setMovie(data);
-      console.log(data);
+      // console.log(data);
 
       setIsLoading(false);
     }
@@ -278,8 +297,13 @@ function MovieDetails({ selectedId, onCloseMovie, onAddWatched, watched }) {
 
   useEffect(() => {
     if (!title) return; //Za da ne e na pola sekunda "undefined" vo title-ot
-
     document.title = `MOVIE: ${title}`;
+
+    //cleanup function
+    return function () {
+      document.title = "usePopcorn";
+      // console.log(`Clean up effect for movie ${title}`);
+    };
   }, [title]);
 
   return (
@@ -377,13 +401,15 @@ export default function App() {
   }
 
   useEffect(() => {
+    const controller = new AbortController();
     async function fetchMovies() {
       try {
         setIsLoading(true);
         setError(""); //resetiranje na error bidejki ke fetch-ash sekoj pat koga ke se smeni query
 
         const res = await fetch(
-          `http://www.omdbapi.com/?apikey=${KEY}&s=${query}`
+          `http://www.omdbapi.com/?apikey=${KEY}&s=${query}`,
+          { signal: controller.signal } //abort controller
         );
 
         //Ako korisnikot mu snema network
@@ -399,9 +425,12 @@ export default function App() {
         }
 
         setMovies(data.Search);
+        setError("");
       } catch (err) {
-        console.error(err.message);
-        setError(err.message);
+        if (err.name !== "AbortError") {
+          console.log(err.message);
+          setError(err.message);
+        }
       } finally {
         setIsLoading(false); //za da ne se pokazuvaat "Loading..." i errorot istovremeno
       }
@@ -413,8 +442,13 @@ export default function App() {
       setError("");
       return;
     }
-
+    //momentot koga ke probas da barash nov film, ke se zatvori toj shto se prikazuvamomentalno
+    handleCloseMovie();
     fetchMovies();
+
+    return function () {
+      controller.abort();
+    };
   }, [query]);
 
   return (
