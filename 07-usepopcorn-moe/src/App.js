@@ -1,4 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useMovies } from "./useMovies.js";
+import { useLocalStorageState } from "./useLocalStorageState.js";
 import StarRating from "./StarRating";
 
 function Navbar({ children }) {
@@ -25,6 +27,32 @@ function NumResults({ movies }) {
   );
 }
 function Search({ query, setQuery }) {
+  const inputEl = useRef(null);
+
+  useEffect(() => {
+    function callback(e) {
+      if (document.activeElement === inputEl.current) {
+        return;
+      }
+
+      if (e.code === "Enter") {
+        inputEl.current.focus();
+        setQuery("");
+      }
+    }
+
+    document.addEventListener("keydown", callback);
+    return () => document.removeEventListener("keydown", callback);
+  }, [setQuery]); //set query e kako dependency posho react ke pishti vo sprotivno
+
+  //However this is NOT the REACT WAY
+  //na load na application da se focusne inputot
+  // useEffect(() => {
+  //   const el = document.querySelector(".search");
+  //   console.log(el);
+  //   el.focus();
+  // }, []);
+
   return (
     <input
       className="search"
@@ -32,6 +60,7 @@ function Search({ query, setQuery }) {
       placeholder="Search movies..."
       value={query}
       onChange={(e) => setQuery(e.target.value)}
+      ref={inputEl}
     />
   );
 }
@@ -172,6 +201,15 @@ function MovieDetails({ selectedId, onCloseMovie, onAddWatched, watched }) {
   const [isLoading, setIsLoading] = useState(false);
   const [userRating, setUserRating] = useState("");
 
+  const countRef = useRef(0);
+
+  //otkota userRating ke se updateira, triggernuva efektot za da go inkrementira countRef.current
+  useEffect(() => {
+    if (userRating) {
+      countRef.current++;
+    }
+  }, [userRating]);
+
   const isWatched = watched.map((movie) => movie.imdbID).includes(selectedId);
 
   const watchedUserRating = watched.find(
@@ -224,6 +262,7 @@ function MovieDetails({ selectedId, onCloseMovie, onAddWatched, watched }) {
       imdbRating: Number(imdbRating),
       runtime: Number(runtime.split(" ").at(0)),
       userRating,
+      countRatingDecisions: countRef.current,
     };
 
     //Koga ke probas da addnesh film vo Watched koj vekje prethodno go imas staveno,
@@ -364,12 +403,21 @@ const average = (arr) =>
 const KEY = "9e721866";
 
 export default function App() {
-  const [movies, setMovies] = useState([]);
-  const [watched, setWatched] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState(null);
+  //pogledni App-v2 i pravi razlika so ova. Vo app-v2 imash standardno,
+  //a tuka imash istiot kod samo so customHook
+  const { movies, isLoading, error } = useMovies(query);
+
+  const [watched, setWatched] = useLocalStorageState([], "watched");
+
+  //ISKOMENTIRAN KOD BIDEJKI SO CUSTOM HOOK E NAPRAVENO ISTOTO
+  // const [watched, setWatched] = useState([]);
+  //localStorage shablon
+  // const [watched, setWatched] = useState(function () {
+  //   const storedValue = JSON.parse(localStorage.getItem("watched"));
+  //   return storedValue;
+  // });
 
   function handleSelectMovie(id) {
     setSelectedId((selectedId) => (id === selectedId ? null : id));
@@ -380,70 +428,31 @@ export default function App() {
   }
 
   function handleAddWatched(movie) {
-    setWatched((watched) => JSON.stringify([...watched, movie])); //stringify bidejki
-    //local storage moze da cuva samo stringovi kako values
+    setWatched((watched) => [...watched, movie]);
 
     // localStorage.setItem("watched", watched); //vaka nema da raboti poradi ASYNCHRONOS STATE,
     //ke go koristi stariot watched array
 
     //Vaka se pravi pravilno:
-    localStorage.setItem("watched", JSON.stringify([...watched, movie])); //za da go zeme noviot film vo predvid
+    //JSON.stringify bidejki local storage moze da cuva samo stringovi kako values
+    // localStorage.setItem("watched", JSON.stringify([...watched, movie])); //za da go zeme noviot film vo predvid
   }
 
   function handleDeleteWatched(id) {
     setWatched((watched) => watched.filter((movie) => movie.imdbID !== id));
   }
 
-  useEffect(() => {
-    const controller = new AbortController();
-    async function fetchMovies() {
-      try {
-        setIsLoading(true);
-        setError(""); //resetiranje na error bidejki ke fetch-ash sekoj pat koga ke se smeni query
+  //ISKOMENTIRAN KOD BIDEJKI SO CUSTOM HOOK E NAPRAVENO ISTOTO
+  //Poradi ovoj effect, LOCAL STORAGE i watched se sinhronizirani
+  // useEffect(() => {
+  //   //pogledni gi komentarite vo handleAddWatched -> nemoras da go pravis vaka localStograge
+  //   //updateing-ot kako gore:
+  //   // localStorage.setItem("watched", JSON.stringify([...watched, movie]));
 
-        const res = await fetch(
-          `http://www.omdbapi.com/?apikey=${KEY}&s=${query}`,
-          { signal: controller.signal } //abort controller
-        );
-
-        //Ako korisnikot mu snema network
-        if (!res.ok) {
-          throw new Error("Something went wrong with fetching movies!");
-        }
-
-        const data = await res.json();
-
-        //Ako responceot e greshen, primer ako vneses losh query
-        if (data.Response === "False") {
-          throw new Error("Movie not found!");
-        }
-
-        setMovies(data.Search);
-        setError("");
-      } catch (err) {
-        if (err.name !== "AbortError") {
-          console.log(err.message);
-          setError(err.message);
-        }
-      } finally {
-        setIsLoading(false); //za da ne se pokazuvaat "Loading..." i errorot istovremeno
-      }
-    }
-
-    //Ako e pomalo od 3 bukvi, nemoj ni da barash
-    if (query.length < 3) {
-      setMovies([]);
-      setError("");
-      return;
-    }
-    //momentot koga ke probas da barash nov film, ke se zatvori toj shto se prikazuvamomentalno
-    handleCloseMovie();
-    fetchMovies();
-
-    return function () {
-      controller.abort();
-    };
-  }, [query]);
+  //   //tuku mozes vaka:
+  //   localStorage.setItem("watched", JSON.stringify(watched)); //bidejki efekti se slucuvaat POSLE
+  //   //state updates
+  // }, [watched]);
 
   return (
     <>
