@@ -33,6 +33,10 @@ function formatDay(dateStr) {
 }
 
 class Weather extends React.Component {
+  componentWillUnmount() {
+    console.log("Weather will unmount");
+  }
+
   render() {
     const {
       temperature_2m_max: max,
@@ -79,19 +83,36 @@ class Day extends React.Component {
   }
 }
 
-class App extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      location: "lisbon",
-      isLoading: false,
-      displayLocation: "",
-      weather: {},
-    };
-    this.fetchWeather = this.fetchWeather.bind(this);
+class Input extends React.Component {
+  render() {
+    return (
+      <div>
+        <input
+          type="text"
+          placeholder="Search from location..."
+          value={this.props.location}
+          onChange={this.props.onChangeLocation}
+          // mozesh tuka da koristis "this" keyword bez da treba da go bind-nesh vo constructorot
+        />
+      </div>
+    );
   }
+}
 
-  async fetchWeather() {
+class App extends React.Component {
+  state = {
+    location: "",
+    isLoading: false,
+    displayLocation: "",
+    weather: {},
+  };
+  // async fetchWeather() {
+  //ako go pishesh vaka namesto kako kodot pogore, nema da imas potreba vekje od
+  //constructor gore.  Ova go pravis so cel da nemoras racno da go bind-nuvash
+  //this keywordot za metodite
+  fetchWeather = async () => {
+    if (this.state.location.length < 2) return this.setState({ weather: {} });
+
     try {
       this.setState({ isLoading: true });
       // 1) Getting location (geocoding)
@@ -116,9 +137,32 @@ class App extends React.Component {
       const weatherData = await weatherRes.json();
       this.setState({ weather: weatherData.daily });
     } catch (err) {
-      console.err(err);
+      console.error(err);
     } finally {
       this.setState({ isLoading: false });
+    }
+  };
+
+  setLocation = (e) => this.setState({ location: e.target.value });
+
+  //useEffect []
+  componentDidMount() {
+    // this.fetchWeather();
+
+    //Koga ke se mountne komponentot, ke go proveri local storage da vidi koja
+    //lokacija si ja stavil prethodno za da ja bara istata.
+    //A ako e undefined sho e falsy value, staj go "" -> prviot pat koga ke ja uklucis
+    //aplikacijata
+    this.setState({ location: localStorage.getItem("location") || "" });
+  }
+
+  //useEffect [location] -> called on mount and re-render
+  //componentDidUpdate -> called only on re-render
+  componentDidUpdate(prevProps, prevState) {
+    if (this.state.location !== prevState.location) {
+      this.fetchWeather();
+
+      localStorage.setItem("location", this.state.location);
     }
   }
 
@@ -126,16 +170,11 @@ class App extends React.Component {
     return (
       <div className="app">
         <h1>Classy Weather</h1>
-        <div>
-          <input
-            type="text"
-            placeholder="Search from location..."
-            value={this.state.location}
-            onChange={(e) => this.setState({ location: e.target.value })}
-            // mozesh tuka da koristis "this" keyword bez da treba da go bind-nesh vo constructorot
-          />
-        </div>
-        <button onClick={this.fetchWeather}>Get weather</button>
+        <Input
+          location={this.state.location}
+          onChangeLocation={this.setLocation}
+        />
+        {/* <button onClick={this.fetchWeather}>Get weather</button> */}
 
         {this.state.isLoading && <p className="loader">Loading...</p>}
 
