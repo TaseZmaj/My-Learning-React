@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useMovies } from "./useMovies.js";
 import { useLocalStorageState } from "./useLocalStorageState.js";
+import { useKey } from "./useKey.js";
 import StarRating from "./StarRating";
 
 function Navbar({ children }) {
@@ -29,21 +30,30 @@ function NumResults({ movies }) {
 function Search({ query, setQuery }) {
   const inputEl = useRef(null);
 
-  useEffect(() => {
-    function callback(e) {
-      if (document.activeElement === inputEl.current) {
-        return;
-      }
-
-      if (e.code === "Enter") {
-        inputEl.current.focus();
-        setQuery("");
-      }
+  useKey("Enter", () => {
+    if (document.activeElement === inputEl.current) {
+      return;
     }
+    inputEl.current.focus();
+    setQuery("");
+  });
 
-    document.addEventListener("keydown", callback);
-    return () => document.removeEventListener("keydown", callback);
-  }, [setQuery]); //set query e kako dependency posho react ke pishti vo sprotivno
+  //ISKOMENTIRANO BIDEJKI GO PRAVAM KORISTEJKI CUSTOM HOOKS
+  // useEffect(() => {
+  //   function callback(e) {
+  //     if (document.activeElement === inputEl.current) {
+  //       return;
+  //     }
+
+  //     if (e.code === "Enter") {
+  //       inputEl.current.focus();
+  //       setQuery("");
+  //     }
+  //   }
+
+  //   document.addEventListener("keydown", callback);
+  //   return () => document.removeEventListener("keydown", callback);
+  // }, [setQuery]); //set query e kako dependency posho react ke pishti vo sprotivno
 
   //However this is NOT the REACT WAY
   //na load na application da se focusne inputot
@@ -283,26 +293,30 @@ function MovieDetails({ selectedId, onCloseMovie, onAddWatched, watched }) {
     setAvgRating((avgRating) => (avgRating + userRating) / 2);
   }
 
-  useEffect(() => {
-    function callback(e) {
-      if (e.code === "Escape") {
-        //ako keypressot na tastaturata e ESC
-        onCloseMovie();
-        // console.log("CLOSING");
-      }
-    }
+  useKey("Escape", onCloseMovie);
 
-    //mora addEventListener i removeEventListener da primaat ista funkcija - "callback(e)",
-    //ako ja copy-pastenesh 2 pati, nema da ja poznava Javascript kako ista funkcija
-    document.addEventListener("keydown", callback);
+  //ISKOMENTIRANO BIDEJKI GO STAVIV VO CUSTOM HOOKS
+  // useEffect(() => {
+  //   function callback(e) {
+  //     if (e.code === "Escape") {
+  //       //ako keypressot na tastaturata e ESC
+  //       onCloseMovie();
+  //       // console.log("CLOSING");
+  //     }
+  //   }
 
-    return function () {
-      //za da ne apply-nuva nov event listener skoj pat koga e mount-nat komponentot
-      document.removeEventListener("keydown", callback);
-    };
-  }, [onCloseMovie]);
+  //   //mora addEventListener i removeEventListener da primaat ista funkcija - "callback(e)",
+  //   //ako ja copy-pastenesh 2 pati, nema da ja poznava Javascript kako ista funkcija
+  //   document.addEventListener("keydown", callback);
+
+  //   return function () {
+  //     //za da ne apply-nuva nov event listener skoj pat koga e mount-nat komponentot
+  //     document.removeEventListener("keydown", callback);
+  //   };
+  // }, [onCloseMovie]);
 
   //i tuka mozes da handlenuvash errori isto kako prethodno, samo vo vezbata ne e handlenato
+
   useEffect(() => {
     async function getMovieDetails() {
       setIsLoading(true);
