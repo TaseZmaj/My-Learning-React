@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import styles from "./CityItem.module.css";
 
 const formatDate = (date) =>
@@ -8,13 +9,25 @@ const formatDate = (date) =>
   }).format(new Date(date));
 
 function CityItem({ city }) {
-  const { cityName, emoji, date } = city;
+  const { cityName, emoji, date, id, position } = city;
+
+  // console.log("Position:", position);
+
   return (
-    <li className={styles.cityItem}>
-      <span>{emoji}</span>
-      <h3 className={styles.name}>{cityName}</h3>
-      <time className={styles.date}>{formatDate(date)}</time>
-      <button className={styles.deleteBtn}>&times;</button>
+    <li>
+      {/* Linkot nosi do cities/id - dinamicki ja generira stranata
+      Nemoras da go pises celoto cities/id bidejki Router vekje znae
+      deka si vo cities path momentalno bidejki tamu se naogja ovoj 
+      komponent */}
+      <Link
+        className={styles.cityItem}
+        to={`${id}?lat=${position.lat}&lng=${position.lng}`}
+      >
+        <span>{emoji}</span>
+        <h3 className={styles.name}>{cityName}</h3>
+        <time className={styles.date}>{formatDate(date)}</time>
+        <button className={styles.deleteBtn}>&times;</button>
+      </Link>
     </li>
   );
 }

@@ -9,6 +9,8 @@ import Login from "./pages/Login.jsx";
 
 import CityList from "./components/CityList/CityList.jsx";
 import CountryList from "./components/CountryList/CountryList.jsx";
+import City from "./components/City/City.jsx";
+import Form from "./components/Form/Form.jsx";
 
 const BASE_URL = "http://localhost:9000";
 
@@ -51,11 +53,15 @@ function App() {
             path="cities"
             element={<CityList cities={cities} isLoading={isLoading} />}
           />
+          {/* Koga aplikacijata ke go naceka ovoj url cities/(something) 
+          ke go aktivira ovoj route,  za da stignes do ovoj route treba
+          da imas <Link></Link> do nego*/}
+          <Route path="cities/:id" element={<City />} />
           <Route
             path="countries"
             element={<CountryList cities={cities} isLoading={isLoading} />}
-          ></Route>
-          <Route path="form" element={<p>Form</p>} />
+          />
+          <Route path="form" element={<Form />} />
         </Route>
         <Route path="*" element={<PageNotFound />} />
       </Routes>
