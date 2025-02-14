@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Product from "./pages/Product.jsx";
 import Homepage from "./pages/Homepage.jsx";
 import Pricing from "./pages/Pricing.jsx";
@@ -45,10 +45,9 @@ function App() {
         <Route path="login" element={<Login />} />
         <Route path="app" element={<AppLayout />}>
           {/* Index route se pokazuva po default, koga ke ja otvoris Rutata*/}
-          <Route
-            index
-            element={<CityList cities={cities} isLoading={isLoading} />}
-          />
+          {/* replace -> se pishuva za <- back kopcheto da raboti na 
+          web browserot */}
+          <Route index element={<Navigate replace to="cities" />} />
           <Route
             path="cities"
             element={<CityList cities={cities} isLoading={isLoading} />}
