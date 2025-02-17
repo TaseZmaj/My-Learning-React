@@ -1,4 +1,4 @@
-import { createContext, useState } from "react";
+import { createContext, useState, useContext } from "react";
 import { faker } from "@faker-js/faker";
 
 function createRandomPost() {
@@ -7,6 +7,8 @@ function createRandomPost() {
     body: faker.hacker.phrase(),
   };
 }
+
+//SHABLON (za Context API):
 
 // 1) CREATE A CONTEXT
 const PostContext = createContext();
@@ -51,10 +53,25 @@ function PostProvider({ children }) {
   );
 }
 
+//custom hook usePosts()
+function usePosts() {
+  const context = useContext(PostContext);
+  if (context === undefined)
+    throw new Error("Post context was used outside of the PostProvider");
+  return context;
+}
+
 //namesto Default export, ...
 // export default PostProvider;
 
+// 1)
 //napravi Named export:
-export { PostProvider, PostContext };
+// export { PostProvider, PostContext };
 //bidejki morasi PostProvider-ot i ContextProvider-ot da gi exportnesh
 //bidejki gi koristis na posebni mesta
+
+//2) Namesto ova gore, za da nemoras vo sekoj komponent posebno
+//da pishuvas const {neshto} = useContext(PostContext), go pravis
+//vo custom Hook (vo istiot file bidejki taka obicno se pravi),
+//i namesto exportot gore, go pravis vaka:
+export { PostProvider, usePosts };
