@@ -1,5 +1,9 @@
-import { useState } from "react";
+/* eslint-disable no-unused-vars */
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/FakeAuthContext.jsx";
 import PageNav from "../components/PageNav/PageNav.jsx";
+import Button from "../components/Button/Button.jsx";
 import styles from "./Login.module.css";
 
 export default function Login() {
@@ -7,10 +11,27 @@ export default function Login() {
   const [email, setEmail] = useState("jack@example.com");
   const [password, setPassword] = useState("qwerty");
 
+  const { login, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
+  function handleSubmit(e) {
+    e.preventDefault();
+
+    if (email && password) login(email, password);
+  }
+
+  //Momentot koga ke se logira, odma stavi go na /app, t.e. na mapata
+  useEffect(
+    function () {
+      if (isAuthenticated) navigate("/app", { replace: true });
+    },
+    [isAuthenticated, navigate]
+  );
+
   return (
     <main className={styles.login}>
       <PageNav />
-      <form className={styles.form}>
+      <form className={styles.form} onSubmit={handleSubmit}>
         <div className={styles.row}>
           <label htmlFor="email">Email address</label>
           <input
@@ -32,7 +53,7 @@ export default function Login() {
         </div>
 
         <div>
-          <button>Login</button>
+          <Button type="primary">Login</Button>
         </div>
       </form>
     </main>

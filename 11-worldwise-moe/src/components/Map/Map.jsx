@@ -11,13 +11,10 @@ import {
 } from "react-leaflet";
 import { useCities } from "../../contexts/CitiesContext.jsx";
 import { useGeolocation } from "../../hooks/useGeolocation.js";
-
-import Button from "../Button/Button.jsx";
-
-import flagemojiToPNG from "../../utils/flagToEmoji.jsx";
-
-import styles from "./Map.module.css";
 import { useUrlPosition } from "../../hooks/useUrlPosition.js";
+import Button from "../Button/Button.jsx";
+import flagemojiToPNG from "../../utils/flagToEmoji.jsx";
+import styles from "./Map.module.css";
 
 //MAP V-1
 // function Map() {
@@ -50,7 +47,6 @@ import { useUrlPosition } from "../../hooks/useUrlPosition.js";
 
 function Map() {
   const { cities } = useCities();
-
   const [mapPosition, setMapPosition] = useState([40, 0]);
   const {
     isLoading: isLoadingPosition,
