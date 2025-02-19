@@ -1,6 +1,9 @@
 /* eslint-disable no-unused-vars */
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useCities } from "../../contexts/CitiesContext.jsx";
+import { useGeolocation } from "../../hooks/useGeolocation.js";
+import { useUrlPosition } from "../../hooks/useUrlPosition.js";
 import {
   MapContainer,
   TileLayer,
@@ -9,9 +12,6 @@ import {
   useMap,
   useMapEvents,
 } from "react-leaflet";
-import { useCities } from "../../contexts/CitiesContext.jsx";
-import { useGeolocation } from "../../hooks/useGeolocation.js";
-import { useUrlPosition } from "../../hooks/useUrlPosition.js";
 import Button from "../Button/Button.jsx";
 import flagemojiToPNG from "../../utils/flagToEmoji.jsx";
 import styles from "./Map.module.css";
@@ -45,8 +45,12 @@ import styles from "./Map.module.css";
 //   );
 // }
 
+//TODO: fix the markers on the map, prestanaa da rabotat otkoga se
+//sluci nenamerniot reset na uncommited kodot
+
 function Map() {
   const { cities } = useCities();
+
   const [mapPosition, setMapPosition] = useState([40, 0]);
   const {
     isLoading: isLoadingPosition,

@@ -2,14 +2,18 @@
 // "https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=0&longitude=0"
 import { useEffect, useState } from "react";
 import { useUrlPosition } from "../../hooks/useUrlPosition";
+import { useCities } from "../../contexts/CitiesContext.jsx";
+import { useNavigate } from "react-router-dom";
+
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+
 import Button from "../Button/Button";
 import Message from "../Message/Message.jsx";
 import Spinner from "../Spinner/Spinner.jsx";
 import BackButton from "../BackButton/BackButton";
 import flagemojiToPNG from "../../utils/flagToEmoji";
-import { useCities } from "../../contexts/CitiesContext.jsx";
 import styles from "./Form.module.css";
-import { useNavigate } from "react-router-dom";
 
 function convertToEmoji(countryCode) {
   const codePoints = countryCode
@@ -102,10 +106,16 @@ function Form() {
 
       <div className={styles.row}>
         <label htmlFor="date">When did you go to {cityName}?</label>
-        <input
+        {/* <input
           id="date"
           onChange={(e) => setDate(e.target.value)}
           value={date}
+        /> */}
+        <DatePicker
+          id="date"
+          onChange={(date) => setDate(date)}
+          selected={date}
+          dateFormat="dd/MM/yyyy"
         />
       </div>
 
