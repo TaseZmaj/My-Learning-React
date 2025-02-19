@@ -1,8 +1,23 @@
 /* eslint-disable no-unused-vars */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Popup,
+  useMap,
+  useMapEvents,
+} from "react-leaflet";
+import { useCities } from "../../contexts/CitiesContext.jsx";
+import { useGeolocation } from "../../hooks/useGeolocation.js";
+
+import Button from "../Button/Button.jsx";
+
+import flagemojiToPNG from "../../utils/flagToEmoji.jsx";
+
 import styles from "./Map.module.css";
+import { useUrlPosition } from "../../hooks/useUrlPosition.js";
 
 //MAP V-1
 // function Map() {
@@ -34,29 +49,95 @@ import styles from "./Map.module.css";
 // }
 
 function Map() {
-  const navigate = useNavigate();
-  const [mapPosition, setMapPsition] = useState([40, 0]);
+  const { cities } = useCities();
 
-  // const [searchParams, setSearchParams] = useSearchParams();
-  // const lat = searchParams.get("lat");
-  // const lng = searchParams.get("lng");
+  const [mapPosition, setMapPosition] = useState([40, 0]);
+  const {
+    isLoading: isLoadingPosition,
+    position: geolocationPosition,
+    getPosition,
+  } = useGeolocation();
 
-  //TODO: MAKE THE MAP WORK
+  const [mapLat, mapLng] = useUrlPosition();
+
+  useEffect(() => {
+    if (mapLat && mapLng) setMapPosition([mapLat, mapLng]);
+  }, [mapLat, mapLng]);
+
+  //koristejki custom Hook useGeolocation(), go zemas tvojot momentalen
+  //lat i lng, i od tamu go setnuvash state-ot na mapPosition - predizvikuva
+  //re-render
+  useEffect(() => {
+    if (geolocationPosition)
+      setMapPosition([geolocationPosition.lat, geolocationPosition.lng]);
+  }, [geolocationPosition]);
+
   return (
-    <div className={styles.mapContainer} onClick={() => navigate("form")}>
-      <MapContainer center={mapPosition} zoom={13} scrollWheelZoom={false}>
+    <div className={styles.mapContainer}>
+      {!geolocationPosition && (
+        <Button type="position" onClick={getPosition}>
+          {isLoadingPosition ? "Loading..." : "Use your position"}
+        </Button>
+      )}
+      <MapContainer
+        className={styles.map}
+        center={mapPosition}
+        zoom={10}
+        scrollWheelZoom={true}
+      >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
         />
-        <Marker position={mapPosition}>
-          <Popup>
-            A pretty CSS3 popup. <br /> Easily customizable.
-          </Popup>
-        </Marker>
+        {cities.map((city) => (
+          <Marker
+            position={[city.position.lat, city.position.lng]}
+            key={city.id}
+          >
+            <Popup>
+              <span>{flagemojiToPNG(city.emoji)}</span>
+              <span>{city.name}</span>
+            </Popup>
+          </Marker>
+        ))}
+
+        {/* CAKA: mapLat ako ne postoi zatoa pishuvash || 40 */}
+        <ChangeCenter position={mapPosition} />
+        <DetectClick />
       </MapContainer>
     </div>
   );
+}
+
+function ChangeCenter({ position }) {
+  const map = useMap();
+  map.setView(position);
+  return null;
+}
+
+//najverojatno React leaflet bara komponent koj se vika detectClick
+//i zatoa mora da se vika vaka i ima logika shto raboti vaka
+function DetectClick() {
+  const navigate = useNavigate();
+
+  useMapEvents({
+    click: (e) => {
+      //Vo event objektot imas dopolnitelni properties kako
+      //lat i lng na mestoto kadeshto posledno bil kliknat
+      //mouse-ot - ova doagja od React-leaflet.
+
+      //So pomosh na navigate() se dvizis do formata i search
+      //query-to go obnovuvas (vid na state update) pri shto
+      //useSearchParams() se retriggernuva, A KOGA toa ke se sluci
+      //se obnovuvaat mapLat i mapLng, A KOGA toa ke se sluci,
+      //se execute-nuva efektot gore koj go menuva mapPosition
+      //state-ot.
+
+      // KAKO REZULTAT: se dvizi mapata do toj lat i lng
+      //i se pomestuva React routerot na <Form> komponentot
+      navigate(`form?lat=${e.latlng.lat}&lng=${e.latlng.lng}`);
+    },
+  });
 }
 
 export default Map;

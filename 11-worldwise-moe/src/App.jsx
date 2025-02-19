@@ -41,5 +41,4 @@ function App() {
     </CitiesProvider>
   );
 }
-
 export default App;
