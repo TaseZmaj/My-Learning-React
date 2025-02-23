@@ -1,4 +1,4 @@
-import { memo, useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { faker } from "@faker-js/faker";
 
 function createRandomPost() {
@@ -25,9 +25,9 @@ function App() {
         )
       : posts;
 
-  function handleAddPost(post) {
+  const handleAddPost = useCallback((post) => {
     setPosts((posts) => [post, ...posts]);
-  }
+  }, []);
 
   function handleClearPosts() {
     setPosts([]);
@@ -41,10 +41,17 @@ function App() {
     [isFakeDark]
   );
 
-  const archiveOptions = {
-    show: false,
-    title: "Post archive in adition to main posts",
-  };
+  const archiveOptions = useMemo(() => {
+    return {
+      show: false,
+      title: `Post archive in adition to ${posts.length} main posts`,
+    };
+  }, [posts.length]);
+  //BITNO: Ako dependency array-ot e prazen [], da receme deka state-ot vo app-ot
+  //treba da se promeni na 2 mesta, no bidejki ti mu vikas da go zeme od cache
+  //ovoj archiveOptions objekt i da go pasnes vo Archive, Archive-ot ke go dobiva
+  //ovoj value od cache-ot i nema ni da pomisli da go zeme value-ot shto se updateiral,
+  //za da se update-ira treba da se dodade dependency
 
   return (
     <section>
@@ -62,7 +69,7 @@ function App() {
         setSearchQuery={setSearchQuery}
       />
       <Main posts={searchedPosts} onAddPost={handleAddPost} />
-      <Archive archiveOptions={archiveOptions} />
+      <Archive archiveOptions={archiveOptions} onAddPost={handleAddPost} />
       <Footer />
     </section>
   );
@@ -159,8 +166,8 @@ function List({ posts }) {
   );
 }
 
-//NE RABOTI memo() ako prop-ot vo komponentot e objekt
-const Archive = memo(function Archive({ archiveOptions }) {
+//NE RABOTI memo() ako prop-ot vo komponentot e objekt/funkcija
+const Archive = memo(function Archive({ archiveOptions, onAddPost }) {
   // Here we don't need the setter function. We're only using state to store these posts because the callback function passed into useState (which generates the posts) is only called once, on the initial render. So we use this trick as an optimization technique, because if we just used a regular variable, these posts would be re-created on every render. We could also move the posts outside the components, but I wanted to show you this trick 😉
   const [posts] = useState(() =>
     // 💥 WARNING: This might make your computer slow! Try a smaller `length` first
@@ -183,7 +190,7 @@ const Archive = memo(function Archive({ archiveOptions }) {
               <p>
                 <strong>{post.title}:</strong> {post.body}
               </p>
-              {/* <button onClick={() => onAddPost(post)}>Add as new post</button> */}
+              <button onClick={() => onAddPost(post)}>Add as new post</button>
             </li>
           ))}
         </ul>
