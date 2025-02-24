@@ -35,7 +35,13 @@ function City() {
 
   useEffect(() => {
     getCity(id);
-  }, [id]);
+  }, [id, getCity]); //IAKO eslint bara getCity da stoi vo dependency array,
+  // NEMA da raboti pravlono aplikacijata sose toa - infinite loop.
+  //NE E RESHENIETO DA JA IZVADISH getCity od [], TOA NE E DOZVOLENO
+  // Bidejki getCity e funkcija koja go update-nuva context-ot, koga
+  // context-ot e update-nat predizvikuva re-render shto predizvikuva
+  // kreacija na nova getCity funkcija, i bidejki se "promenila" getCity
+  // funkcijata, useEffectov gore ke raboti.  Za popravka - memoizacija
 
   // const [searchParams] = useSearchParams();
   // //od query-to vo URL-to gi vari lat i lng -> igraat uloga na
