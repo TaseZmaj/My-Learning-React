@@ -1,5 +1,11 @@
 /* eslint-disable react-refresh/only-export-components */
-import { useEffect, createContext, useContext, useReducer } from "react";
+import {
+  useEffect,
+  createContext,
+  useContext,
+  useReducer,
+  useCallback,
+} from "react";
 
 const BASE_URL = "http://localhost:9000";
 
@@ -97,21 +103,24 @@ function CitiesProvider({ children }) {
   //Istovo mozeshe da go pishesh i vo <App />, no tuka e mnogu po
   //pregledno i mozebi ke imas potreba od razlicni Context-i vo
   //pogolema aplikacija
-  async function getCity(id) {
-    //Mora da konvertirano vo Number(id) bidejki od URL-to e zemeno, a URL e string
-    if (Number(id) === currentCity.id) return;
-    dispatch({ type: "loading" });
-    try {
-      const res = await fetch(`${BASE_URL}/cities/${id}`);
-      const data = await res.json();
-      dispatch({ type: "city/loaded", payload: data });
-    } catch {
-      dispatch({
-        type: "rejected",
-        payload: "There was an error loading the city...",
-      });
-    }
-  }
+  const getCity = useCallback(
+    async (id) => {
+      //Mora da konvertirano vo Number(id) bidejki od URL-to e zemeno, a URL e string
+      if (Number(id) === currentCity.id) return;
+      dispatch({ type: "loading" });
+      try {
+        const res = await fetch(`${BASE_URL}/cities/${id}`);
+        const data = await res.json();
+        dispatch({ type: "city/loaded", payload: data });
+      } catch {
+        dispatch({
+          type: "rejected",
+          payload: "There was an error loading the city...",
+        });
+      }
+    },
+    [currentCity.id]
+  );
 
   async function createCity(newCity) {
     dispatch({ type: "loading" });
@@ -153,6 +162,8 @@ function CitiesProvider({ children }) {
   }
 
   return (
+    // Nema potreba od memoizacija na value-ot bidejki nemame komponenti
+    //vo component tree nad nego shto bi mozele da predizvikaat re-render na ovoj
     <CitiesContext.Provider
       value={{
         cities,
