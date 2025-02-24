@@ -1,46 +1,53 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Calculator from "./Calculator";
 import ToggleSounds from "./ToggleSounds";
+
+//stavaj funkcii shto nemora da se renreirani sekoj pat,
+//NADVOR od function Component declaration - za da ne bide
+//nivnata deklaracija nanovo renderirana sekoj pat
+function formatTime(date) {
+  return new Intl.DateTimeFormat("en", {
+    month: "short",
+    year: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  }).format(date);
+}
 
 function App() {
   const [allowSound, setAllowSound] = useState(true);
   const [time, setTime] = useState(formatTime(new Date()));
 
   // Will be be AM or PM
-  const partOfDay = time.slice(-2);
+  const partOfDay = time.slice(-2); //part of day e "reactive value" - vidi vo tetratka za povekje info
 
-  const workouts = [
-    {
-      name: "Full-body workout",
-      numExercises: partOfDay === "AM" ? 9 : 8,
-    },
-    {
-      name: "Arms + Legs",
-      numExercises: 6,
-    },
-    {
-      name: "Arms only",
-      numExercises: 3,
-    },
-    {
-      name: "Legs only",
-      numExercises: 4,
-    },
-    {
-      name: "Core only",
-      numExercises: partOfDay === "AM" ? 5 : 4,
-    },
-  ];
-
-  function formatTime(date) {
-    return new Intl.DateTimeFormat("en", {
-      month: "short",
-      year: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-    }).format(date);
-  }
+  //se rekreira na sekoj re-render bidejki se povikuva App()
+  //funkcijata povtorno
+  const workouts = useMemo(() => {
+    return [
+      {
+        name: "Full-body workout",
+        numExercises: partOfDay === "AM" ? 9 : 8,
+      },
+      {
+        name: "Arms + Legs",
+        numExercises: 6,
+      },
+      {
+        name: "Arms only",
+        numExercises: 3,
+      },
+      {
+        name: "Legs only",
+        numExercises: 4,
+      },
+      {
+        name: "Core only",
+        numExercises: partOfDay === "AM" ? 5 : 4,
+      },
+    ];
+  }, [partOfDay]);
 
   useEffect(function () {
     const id = setInterval(function () {
