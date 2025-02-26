@@ -17,6 +17,7 @@ function AccountOperations() {
     loan: currentLoan,
     loanPurpose: currentLoanPurpose,
     balance,
+    isLoading,
   } = useSelector((store) => store.account);
 
   // useEffect(() => {
@@ -26,8 +27,12 @@ function AccountOperations() {
   function handleDeposit() {
     if (!depositAmount) return;
 
-    dispatch(deposit(Number(depositAmount)));
+    // console.log("DepositAmount:", depositAmount);
+    // console.log("Currency in handleDeposit(): ", currency);
+
+    dispatch(deposit(Number(depositAmount), currency));
     setDepositAmount("");
+    setCurrency("USD");
   }
 
   function handleWithdrawal() {
@@ -64,12 +69,16 @@ function AccountOperations() {
             value={currency}
             onChange={(e) => setCurrency(e.target.value)}
           >
-            <option value="USD">US Dollar</option>
+            <option value="USD" defaultValue>
+              US Dollar
+            </option>
             <option value="EUR">Euro</option>
             <option value="GBP">British Pound</option>
           </select>
 
-          <button onClick={handleDeposit}>Deposit {depositAmount}</button>
+          <button onClick={handleDeposit} disabled={isLoading}>
+            {isLoading ? "Converting..." : `Deposit ${depositAmount}`}
+          </button>
         </div>
 
         <div>
